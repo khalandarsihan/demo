@@ -1,0 +1,47 @@
+import frappe
+from werkzeug.wrappers import Response
+
+def apply_cors():
+    """Apply CORS headers for API requests"""
+    # Early exit if no request
+    if not frappe.request or not frappe.request.method:
+        return
+        
+    # Get origin from request
+    origin = frappe.request.headers.get('Origin')
+    if not origin:
+        return
+        
+    # Create response headers
+    cors_headers = {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Frappe-CSRF-Token, Authorization, X-Requested-With',
+    }
+    
+    # Handle preflight OPTIONS requests immediately and return
+    if frappe.request.method == 'OPTIONS':
+        cors_headers.update({
+            'Access-Control-Max-Age': '1728000',
+            'Content-Length': '0',
+            'Content-Type': 'text/plain',
+        })
+        # Return a complete response for OPTIONS
+        response = Response('', status=204)
+        for key, value in cors_headers.items():
+            response.headers[key] = value
+        frappe.local.response = response
+        return response
+    
+    # For non-OPTIONS requests, delay adding headers until after the request
+    # First ensure the response object exists
+    if not hasattr(frappe, 'response') or frappe.response is None:
+        frappe.response = Response()
+        
+    # Now ensure headers exist
+    if not hasattr(frappe.response, 'headers'):
+        frappe.response.headers = {}
+        
+    # Add CORS headers
+    frappe.response.headers.update(cors_headers)

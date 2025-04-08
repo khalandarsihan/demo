@@ -191,7 +191,6 @@ app_license = "mit"
 
 # Request Events
 # ----------------
-# before_request = ["demo.utils.before_request"]
 # after_request = ["demo.utils.after_request"]
 
 # Job Events
@@ -237,3 +236,4 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+before_request = ["demo.api.cors.apply_cors"]
