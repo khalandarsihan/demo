@@ -1,3 +1,4 @@
+# demo/api/auth/user.py
 import frappe
 from frappe import _
 
@@ -21,10 +22,13 @@ def get_current_user():
         return {}
     
     try:
-        # Return user info even for guest
+        # Return user info - including for guest
+        user = frappe.session.user
+        message = "Authenticated" if user != "Guest" else "Not authenticated"
+        
         return {
-            "message": "Authenticated" if frappe.session.user != "Guest" else "Not authenticated",
-            "user": frappe.session.user if frappe.session.user != "Guest" else None
+            "message": message,
+            "user": user if user != "Guest" else None
         }
     except Exception as e:
         frappe.log_error(f"Error getting user: {str(e)}")

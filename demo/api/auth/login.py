@@ -1,3 +1,4 @@
+# demo/api/auth/login.py
 import frappe
 from frappe import _
 import json
@@ -34,11 +35,13 @@ def login_with_cors():
         if not username or not password:
             # For JSON requests
             try:
-                request_json = json.loads(frappe.request.data.decode('utf-8'))
-                username = request_json.get('username') or request_json.get('usr')
-                password = request_json.get('password') or request_json.get('pwd')
-            except:
-                pass
+                request_data = frappe.request.data
+                if request_data:
+                    request_json = json.loads(request_data.decode('utf-8'))
+                    username = request_json.get('username') or request_json.get('usr')
+                    password = request_json.get('password') or request_json.get('pwd')
+            except Exception as e:
+                frappe.log_error(f"Error parsing request JSON: {str(e)}")
         
         # Final validation
         if not username or not password:

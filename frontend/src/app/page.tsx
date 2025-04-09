@@ -39,29 +39,37 @@ export default function Home() {
     checkConnection();
   }, []);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setStatus('Logging in...');
+// Update the handleLogin function in src/app/page.tsx
+const handleLogin = async (e: FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setStatus('Logging in...');
+  
+  try {
+    const result = await customLogin(username, password);
+    console.log('Login result:', result);
     
-    try {
-      const result = await customLogin(username, password);
-      console.log('Login result:', result);
+    // Check for message property in the response
+    if (result.message === "Logged In" || 
+        (result.message && typeof result.message === 'object' && result.message.message === "Logged In")) {
+      // Get the user from wherever it is in the response structure
+      const user = result.user || 
+                  (result.message && result.message.user) || 
+                  username;
       
-      if (result.message && result.message === 'Logged In') {
-        setUser(result.user || username);
-        setStatus('Logged in successfully');
-      } else if (result.error) {
-        throw new Error(result.error);
-      } else {
-        throw new Error('Login failed with unknown error');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed: ' + (error instanceof Error ? error.message : String(error)));
-      setStatus('');
+      setUser(user);
+      setStatus('Logged in successfully');
+    } else if (result.error) {
+      throw new Error(result.error);
+    } else {
+      throw new Error('Login failed with unknown error');
     }
-  };
+  } catch (error) {
+    console.error('Login error:', error);
+    setError('Login failed: ' + (error instanceof Error ? error.message : String(error)));
+    setStatus('');
+  }
+};
 
   const handleLogout = async () => {
     try {

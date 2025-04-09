@@ -16,6 +16,9 @@ export const auth = frappe.auth();
 export const db = frappe.db();
 
 // Custom login function using our new endpoint
+// frontend/src/utils/frappe.ts
+// Update the customLogin function:
+
 export const customLogin = async (username: string, password: string) => {
   try {
     console.log('Attempting login with:', { username, password: '***' });
@@ -24,7 +27,7 @@ export const customLogin = async (username: string, password: string) => {
     formData.append('username', username);
     formData.append('password', password);
     
-    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.login.login_with_cors`, {
+    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.simple_login.login`, {
       method: 'POST',
       body: formData,
       credentials: 'include',
@@ -32,20 +35,24 @@ export const customLogin = async (username: string, password: string) => {
     
     console.log('Login response status:', response.status);
     
-    if (!response.ok) {
-      let errorMessage = `Login failed with status: ${response.status}`;
-      try {
-        const errorText = await response.text();
-        console.error('Error response body:', errorText);
-        errorMessage += ` - ${errorText}`;
-      } catch (err) {
-        console.error('Failed to read error response:', err);
-      }
-      throw new Error(errorMessage);
+    // Get the response text
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+    
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON response: ${responseText}`);
     }
     
-    const data = await response.json();
-    console.log('Login response data:', data);
+    // Handle different response formats from Frappe
+    if (data.exc_type || data.exception) {
+      throw new Error(data.exception || data.exc_type);
+    }
+    
+    // Return the actual data, which might be in a message property
     return data;
   } catch (error) {
     console.error('Login function error:', error);
@@ -54,19 +61,33 @@ export const customLogin = async (username: string, password: string) => {
 };
 
 // Custom function to get current user
+// frontend/src/utils/frappe.ts
+// Update the getCurrentUser function:
+
 export const getCurrentUser = async () => {
   try {
-    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.user.get_current_user`, {
+    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.simple_user.get_user`, {
       method: 'GET',
       credentials: 'include',
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to get user: ${response.status} - ${errorText}`);
+    // Get the response text
+    const responseText = await response.text();
+    console.log('User response:', responseText);
+    
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON response: ${responseText}`);
     }
     
-    return await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    return data;
   } catch (error) {
     console.error('Get user error:', error);
     throw error;
@@ -74,19 +95,33 @@ export const getCurrentUser = async () => {
 };
 
 // Custom logout function
+// frontend/src/utils/frappe.ts
+// Update the customLogout function:
+
 export const customLogout = async () => {
   try {
-    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.logout.logout_user`, {
+    const response = await fetch(`${FRAPPE_URL}/api/method/demo.api.auth.simple_logout.logout`, {
       method: 'GET',
       credentials: 'include',
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Logout failed: ${response.status} - ${errorText}`);
+    // Get the response text
+    const responseText = await response.text();
+    console.log('Logout response:', responseText);
+    
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON response: ${responseText}`);
     }
     
-    return await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    return data;
   } catch (error) {
     console.error('Logout error:', error);
     throw error;

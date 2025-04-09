@@ -236,4 +236,4 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-before_request = ["demo.api.cors.apply_cors"]
+# before_request = ["demo.api.cors.apply_cors"]
